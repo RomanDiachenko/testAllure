@@ -1,0 +1,32 @@
+# Ignore git files
+.git
+.gitignore
+
+# Ignore node_modules if they exist
+node_modules
+
+# Ignore local environment files
+.env
+*.env
+
+# Ignore OS/system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE configs
+.idea
+.vscode
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore test reports history (optional, якщо не потрібно зберігати старі історії)
+allure-results/history/
+
+# Ignore Allure report output (it will be generated in container)
+allure-report/
+
+# Ignore Docker-related files
+Dockerfile.*
+docker-compose.yml
