@@ -9,4 +9,8 @@ import allure
 @allure.tag("test")
 def test_test():
     print ("hello. This is test allure report")
-    assert True
+    assert 1 == 1
+
+def test_2():
+    print ("Something happened, dont worry, this is a test")
+    assert 2 == 1
