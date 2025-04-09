@@ -29,12 +29,13 @@ jobs:
         pip install -r requirements.txt
         pip install allure-pytest
 
-    - name: Install Allure Command Line (using Homebrew)
+    - name: Install Allure Command Line
       run: |
-        sudo apt-get update
-        sudo apt-get install -y curl
-        curl -sSL https://install.github.com/homebrew.sh | bash
-        brew install allure
+        # Завантажуємо останню версію Allure CLI
+        curl -o allure-commandline.zip -L https://github.com/allure-framework/allure2/releases/download/2.17.3/allure-2.17.3.zip
+        unzip allure-commandline.zip -d allure
+        sudo mv allure /usr/local/bin/allure
+        rm allure-commandline.zip
 
     - name: Run tests
       run: |
