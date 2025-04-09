@@ -39,8 +39,8 @@ jobs:
 
     - name: Generate Allure Report (using Docker)
       run: |
-        docker pull allure/allure
-        docker run --rm -v $(pwd)/allure-results:/app/allure-results -v $(pwd)/allure-report:/app/allure-report allure/allure generate /app/allure-results --clean -o /app/allure-report
+        docker pull sergueik/allure
+        docker run --rm -v $(pwd)/allure-results:/app/allure-results -v $(pwd)/allure-report:/app/allure-report sergueik/allure generate /app/allure-results --clean -o /app/allure-report
 
     - name: Deploy Allure Report to Cloud Run
       run: |
