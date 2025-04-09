@@ -32,7 +32,7 @@ jobs:
     - name: Run tests
       run: |
         if [ -z "${{ github.event.inputs.test_name }}" ]; then
-          pytest app/ --alluredir=allure-results
+          pytest test1.py --alluredir=allure-results
         else
           pytest ${{ github.event.inputs.test_name }} --alluredir=allure-results
         fi
