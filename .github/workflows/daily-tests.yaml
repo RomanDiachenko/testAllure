@@ -29,14 +29,6 @@ jobs:
         pip install -r requirements.txt
         pip install allure-pytest
 
-    - name: Install Allure Command Line
-      run: |
-        # Завантажуємо останню версію Allure CLI
-        curl -o allure-commandline.zip -L https://github.com/allure-framework/allure2/releases/download/2.17.3/allure-2.17.3.zip
-        unzip allure-commandline.zip -d allure
-        sudo mv allure /usr/local/bin/allure
-        rm allure-commandline.zip
-
     - name: Run tests
       run: |
         if [ -z "${{ github.event.inputs.test_name }}" ]; then
@@ -45,9 +37,9 @@ jobs:
           pytest ${{ github.event.inputs.test_name }} --alluredir=allure-results
         fi
 
-    - name: Generate Allure Report
+    - name: Generate Allure Report (using Docker)
       run: |
-        allure generate allure-results -o allure-report --clean
+        docker run --rm -v $(pwd)/allure-results:/app/allure-results -v $(pwd)/allure-report:/app/allure-report allureframework/allure2 generate /app/allure-results --clean -o /app/allure-report
 
     - name: Deploy Allure Report to Cloud Run
       run: |
