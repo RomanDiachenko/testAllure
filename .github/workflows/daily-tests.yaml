@@ -39,7 +39,7 @@ jobs:
 
     - name: Generate Allure Report
       run: |
-        pip install allure-commandline
+        pip install allure-pytest
         allure generate allure-results -o allure-report --clean
 
     - name: Deploy Allure Report to Cloud Run
