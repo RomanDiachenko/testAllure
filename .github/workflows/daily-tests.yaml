@@ -45,6 +45,7 @@ jobs:
         else
           pytest ${{ github.event.inputs.test_name }} --alluredir=allure-results
         fi
+      continue-on-error: true
 
     - name: Generate Allure Report
       run: |
