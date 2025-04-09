@@ -2,11 +2,11 @@ name: Run Tests and Deploy Allure Report
 
 on:
   schedule:
-    - cron: '0 0 * * *'    # Щоденний запуск тестів о 00:00 UTC
+    - cron: '0 0 * * *'    # Щоденний запуск тестів
   workflow_dispatch:        # Можливість запускати вручну
     inputs:
       test_name:
-        description: 'Test name or pattern (pytest -k)'
+        description: 'Path to test file or test name (example: app/test.py -k test_login)'
         required: false
         default: ''
 
@@ -31,7 +31,11 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest -k "${{ github.event.inputs.test_name }}" --alluredir=allure-results
+        if [ -z "${{ github.event.inputs.test_name }}" ]; then
+          pytest app/ --alluredir=allure-results
+        else
+          pytest ${{ github.event.inputs.test_name }} --alluredir=allure-results
+        fi
 
     - name: Generate Allure Report
       run: |
