@@ -29,12 +29,14 @@ jobs:
         pip install -r requirements.txt
         pip install allure-pytest
 
-    - name: Install Allure Command Line
+    - name: Install Node.js and Allure CLI
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    
+    - name: Install Allure CLI via npm
       run: |
-        curl -o allure-commandline.zip -L https://github.com/allure-framework/allure2/releases/download/2.17.3/allure-2.17.3.zip
-        unzip allure-commandline.zip -d allure
-        sudo mv allure /usr/local/bin/allure
-        rm allure-commandline.zip
+        npm install -g allure-commandline --save-dev
 
     - name: Run tests
       run: |
