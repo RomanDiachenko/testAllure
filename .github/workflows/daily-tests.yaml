@@ -6,7 +6,7 @@ on:
   workflow_dispatch:        # Можливість запускати вручну
     inputs:
       test_name:
-        description: 'Path to test file or test name (example: app/test.py -k test_login)'
+        description: 'Path to test file or test name (example: app/test1.py -k test_test)'
         required: false
         default: ''
 
@@ -32,7 +32,7 @@ jobs:
     - name: Run tests
       run: |
         if [ -z "${{ github.event.inputs.test_name }}" ]; then
-          pytest test1.py --alluredir=allure-results
+          pytest app/test1.py --alluredir=allure-results
         else
           pytest ${{ github.event.inputs.test_name }} --alluredir=allure-results
         fi
