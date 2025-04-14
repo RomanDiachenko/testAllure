@@ -60,6 +60,15 @@ jobs:
           echo "No previous allure-history found. Proceeding without it."
         fi
 
+    - name: List contents of allure-results/history
+      run: |
+        if [ -d allure-results/history ]; then
+          echo "History folder found:"
+          ls -R allure-results/history
+        else
+          echo "No history folder found!"
+        fi
+
     - name: Generate Allure Report
       run: |
         allure generate allure-results -o allure-report --clean
