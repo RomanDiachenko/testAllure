@@ -5,10 +5,10 @@ import allure
 @allure.title("Simple test to check assertion")
 @allure.description("This test checks whether the assertion result is correct.")
 @allure.severity(allure.severity_level.MINOR)  # Set the severity level
-@allure.label("owner", "Roman")  # Test owner
+@allure.label("owner", "Kostya")  # Test owner
 @allure.label("team", "QA")  # Team responsible for the test
 @allure.tag("example")  # Tag for the test
-@allure.link("http://google.com", name="Some Link")  # Add external link
+@allure.link("http://example.com", name="Documentation")  # Add external link
 def test_example():
     # Add a step to the test
     with allure.step("Checking if numbers are equal"):
@@ -17,7 +17,6 @@ def test_example():
 # Test with file attachment (e.g., image or log)
 @allure.title("Test with file attachment")
 @allure.description("This test adds a file with test results to the report.")
-@allure.attachment("Test Results", "This could be a file or text")
 def test_with_attachment():
     allure.attach("This is just a text attachment", name="Text Attachment", attachment_type=allure.attachment_type.TEXT)
     allure.attach("Additional Information", name="Additional Information", attachment_type=allure.attachment_type.JSON)
