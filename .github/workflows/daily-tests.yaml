@@ -2,8 +2,8 @@ name: Run Tests and Deploy Allure Report
 
 on:
   schedule:
-    - cron: '0 0 * * *'    # Щоденний запуск тестів
-  workflow_dispatch:        # Можливість запускати вручну
+    - cron: '0 0 * * *'
+  workflow_dispatch:
     inputs:
       test_name:
         description: 'Path to test file or test name (example: app/test1.py -k test_test)'
@@ -35,39 +35,51 @@ jobs:
         node-version: '16'
 
     - name: Install Allure CLI via npm
-      run: |
-        npm install -g allure-commandline --save-dev
-
-    - name: Try to download previous Allure history (if exists)
-      continue-on-error: true
-      uses: actions/download-artifact@v4
-      with:
-        name: allure-history
-        path: allure-results/history
+      run: npm install -g allure-commandline --save-dev
 
     - name: Run tests
       run: |
         if [ -z "${{ github.event.inputs.test_name }}" ]; then
-          pytest app/test1.py --alluredir=allure-results
+          pytest app/test1.py --alluredir=allure-results || true
         else
-          pytest ${{ github.event.inputs.test_name }} --alluredir=allure-results
+          pytest ${{ github.event.inputs.test_name }} --alluredir=allure-results || true
         fi
+
+    - name: Try to download previous Allure history (if exists)
+      uses: actions/download-artifact@v4
+      with:
+        name: allure-history
+        path: allure-history
       continue-on-error: true
+
+    - name: Copy history to results
+      run: |
+        if [ -d allure-history ]; then
+          cp -r allure-history/history allure-results/
+        else
+          echo "No previous allure-history found. Proceeding without it."
+        fi
 
     - name: Generate Allure Report
       run: |
         allure generate allure-results -o allure-report --clean
 
-    - name: Copy Allure history to results for next run
+    - name: Save Allure history
       run: |
-        mkdir -p allure-results/history
-        cp -r allure-report/history/* allure-results/history/ || true
+        mkdir -p allure-history
+        cp -r allure-report/history allure-history/
 
     - name: Upload Allure history
       uses: actions/upload-artifact@v4
       with:
         name: allure-history
-        path: allure-results/history
+        path: allure-history
+
+    - name: Upload Allure Report (optional)
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: allure-report
 
     - name: Decode JSON and authenticate with Google Cloud
       run: |
