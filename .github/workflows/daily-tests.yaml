@@ -2,11 +2,11 @@ name: Run Tests and Deploy Allure Report
 
 on:
   schedule:
-    - cron: '0 0 * * *'
-  workflow_dispatch:
+    - cron: '0 0 * * *'    # Run daily at midnight
+  workflow_dispatch:        # Allow manual trigger
     inputs:
       test_name:
-        description: 'Path to test file or test name (example: app/test1.py -k test_test)'
+        description: 'Path to test file or test name'
         required: false
         default: ''
 
@@ -78,26 +78,15 @@ jobs:
         mkdir -p allure-history
         cp -r allure-report/history allure-history/
 
-    - name: Upload Allure history
-      uses: actions/upload-artifact@v4
-      with:
-        name: allure-history
-        path: allure-history
-
-    - name: Upload Allure Report (optional)
-      uses: actions/upload-artifact@v4
-      with:
-        name: allure-report
-        path: allure-report
-
-    - name: Decode JSON and authenticate with Google Cloud
+    - name: Upload Allure history to GCS
       run: |
         echo "${{ secrets.GCP_SA_KEY_B64 }}" | base64 --decode > /tmp/gcloud-key.json
         gcloud auth activate-service-account --key-file=/tmp/gcloud-key.json
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+        gsutil cp -r allure-history gs://${{ secrets.GCP_BUCKET_NAME }}/allure-history/
 
     - name: Deploy Allure Report to Cloud Run
       run: |
-        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
         gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/allure-report
         gcloud run deploy allure-report \
           --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/allure-report \
