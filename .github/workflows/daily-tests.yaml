@@ -1,34 +1,79 @@
-name: Daily Tests and Deploy Report
+name: Run Tests and Deploy Allure Report
 
 on:
   schedule:
-    - cron: '0 3 * * *'  # Every day at 03:00 UTC
-  workflow_dispatch:  # manual run from button in GitHub
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      test_name:
+        description: 'Test path or name (optional)'
+        required: false
+        default: ''
 
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install allure-pytest
 
-      - name: Run Tests
-        run: |
-          pytest --alluredir=allure-results
+    - name: Install Node.js and Allure CLI
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    - run: npm install -g allure-commandline
 
-      - name: Deploy Allure Report to Cloud Run
-        run: |
-          gcloud builds submit --config cloudbuild.yaml
-        env:
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+    # === LOAD HISTORY FROM GCS ===
+    - name: Decode JSON and authenticate with Google Cloud
+      run: |
+        echo "${{ secrets.GCP_SA_KEY_B64 }}" | base64 --decode > /tmp/key.json
+        gcloud auth activate-service-account --key-file=/tmp/key.json
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Download Allure history from GCS (if exists)
+      run: |
+        mkdir -p allure-results/history
+        gsutil cp -r gs://${{ secrets.GCS_BUCKET_NAME }}/history/* allure-results/history/ || echo "No previous history"
+
+    # === RUN TESTS ===
+    - name: Run tests
+      run: |
+        pytest app/test1.py --alluredir=allure-results || true
+
+    # === GENERATE REPORT ===
+    - name: Generate Allure Report
+      run: |
+        allure generate allure-results -o allure-report --clean
+
+    # === SAVE HISTORY ===
+    - name: Save history to GCS
+      run: |
+        gsutil -m cp -r allure-report/history/* gs://${{ secrets.GCS_BUCKET_NAME }}/history/
+
+    - name: Save history to GitHub Artifact (30d)
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-history
+        path: allure-report/history
+        retention-days: 30
+
+    # === DEPLOY TO CLOUD RUN ===
+    - name: Build and deploy to Cloud Run
+      run: |
+        gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/allure-report
+        gcloud run deploy allure-report \
+          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/allure-report \
+          --region ${{ secrets.GCP_REGION }} \
+          --platform managed \
+          --allow-unauthenticated
